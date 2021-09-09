@@ -1,0 +1,14 @@
+1.
+Frågor (skissa svar innan redovisning):
+
+Hur ser högdagrarna ut i 1a? Varför?
+Eftersom att det är dem ljusaste pixlarna, över 1.
+
+Hur allokerar man en tom textur?
+Genom att använda initFBO som skapar en tom textur med tillhörande FBO.
+
+Hur många pass körde du lågpassfiltret i 1c och 1d?
+5
+
+Bör trunkeringen göras i egen shader eller som del av en shader som gör något mer? Varför?
+I egen shader som jag har gjort, vill ha den separat för att lägga i en egen fbo.

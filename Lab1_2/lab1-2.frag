@@ -14,10 +14,10 @@ out vec4 out_Color;
 void main(void)
 {
     vec3 light = vec3(0.0, 0.7, 0.7); // Light source in view coordinates
-	
+
 	// Calculate gradients here
 	float offset = 1.0 / 256.0; // texture size, same in both directions
-	
+
 	// Bump mapping (a) view coordinates
     // vec3 normal = normalize(out_Normal);
     // float bs = (texture(texUnit, outTexCoord + vec2(offset, 0.0)) - texture(texUnit, outTexCoord)).x; // bs = b[s+1, t] - b[s, t] (s79)
