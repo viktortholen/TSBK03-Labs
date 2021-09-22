@@ -1,0 +1,15 @@
+2.
+Vilken bumpmappning tycker du är att föredra, vykoordinater eller texturkoordinater? Varför?
+texturkoordinater, såg mer tydligt ut
+
+Vad är skillnaden mellan att arbeta i vy- och texturkoordinater?
+texturcoordinater använder ljusriktningen?
+
+Vilken bumpmappning (2a eller 2b) är lämplig för normalmapping?
+b) för att normalmappning kräver s^ och t^ i texturcoordinater
+
+Definierar du bumpmappen som avstånd in i eller ut ur objektet? Var spelar det in?
+Beror på färgen av texturen, in eller ut ur objektet, beror på normalens riktning i ekvationen
+
+Blev Mvt rätt med mat3 i 2b? Om inte, vad gjorde du åt det?
+Ja?

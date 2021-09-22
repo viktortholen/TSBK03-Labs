@@ -158,7 +158,6 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(phongshader, "modelviewMatrix"), 1, GL_TRUE, vm2.m);
 	// glUniform3fv(glGetUniformLocation(phongshader, "camPos"), 1, &cam.x);
 	glUniform1i(glGetUniformLocation(phongshader, "texUnit"), 0);
-
 	// Enable Z-buffering
 	glEnable(GL_DEPTH_TEST);
 	// Enable backface culling
@@ -171,16 +170,23 @@ void display(void)
 
 //  glFlush(); // Can cause flickering on some systems. Can also be necessary to make drawing complete.
 
-	runfilter(truncate, 0L, 0L, fbo3);
-    // for (int i = 0; i < 10; ++i) { //ping-ponging - read from one texture and write to the other, then swap
-    //     if (i % 2 == 0) { 
-    //         runfilter(lowpass, fbo3, 0L, fbo2);
-    //     } else {
-    //         runfilter(lowpass, fbo2, 0L, fbo3);
-    //     }
-    // }
-    // runfilter(merger, fbo2, fbo1, fbo3);
-    runfilter(plaintextureshader, fbo1, fbo3, 0L);
+	runfilter(truncate, fbo1, 0L, fbo3);
+     for (int i = 2; i < 10; ++i) { //ping-ponging - read from one texture and write to the other, then swap
+         if (i % 2 == 0) {
+             runfilter(lowpass, fbo3, 0L, fbo2);
+         } else {
+             runfilter(lowpass, fbo2, 0L, fbo3);
+         }
+     }
+
+ // runfilter(lowpass, fbo3, 0L, fbo2);
+ //  runfilter(lowpass, fbo2, 0L, fbo3);
+	// runfilter(lowpass, fbo3, 0L, fbo2);
+	//  runfilter(lowpass, fbo2, 0L, fbo3);
+	//  runfilter(lowpass, fbo3, 0L, fbo2);
+	//   runfilter(lowpass, fbo2, 0L, fbo3);
+  runfilter(merger, fbo2, fbo1, fbo3);
+  runfilter(plaintextureshader, fbo3, 0L, 0L);
 
 
 	// useFBO(0L, fbo1, 0L);
@@ -272,4 +278,3 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 	exit(0);
 }
-
