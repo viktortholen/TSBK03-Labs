@@ -20,7 +20,7 @@
 #include <stdlib.h>
 // L�gg till egna globaler h�r efter behov.
 float kMaxDistance = 1000;
-float kAlignmentWeight = 0.0001;
+float kAlignmentWeight = 0.003;
 float kCohesionWeight = 0.0001;
 float kAvoidanceWeight = 0.009;
 float kFoodWeight = 0.0001;

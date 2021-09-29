@@ -1,0 +1,14 @@
+Hur gjorde du för att söka igenom alla boids?
+söker igenom node->next tills den är NULL, går vidare med node = node->next
+
+Vilken funktion valde du för den bortstötande kraften? Är din separation bra eller kan du tänka dig finjusteringar?
+1-distance/sqrt(maxdistance) / distance. Inte 100 procent men ekvationen gör att det blir en hyffsad falloff på avstånd.
+
+Vilken vikt lade du på alignment? Hur mycket rätar de upp sig efter varandra per iteration?
+Testat olika men 0.003 gör att man ser effekten men att den inte tar över.
+
+Hur håller du reda på ditt "svarta får”?
+Bool anomaly som jag kan kolla för varje node.
+
+Är ditt svarta får en "ledare" eller en "busig flockmedlem". Hur skulle du ha gjort för att göra den andra av dessa två?
+Mina svarta får är en busiga flockmedlemmar. För att göra dem till ledare hade jag använt likande ekvation som för maten och viktat dem emellan.
