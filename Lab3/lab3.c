@@ -98,7 +98,7 @@ Material ballMt = { { 1.0, 1.0, 1.0, 1.0 }, { 1.0, 1.0, 1.0, 0.0 },
                 };
 
 
-enum {kNumBalls = 4}; // Change as desired, max 16
+enum {kNumBalls = 16}; // Change as desired, max 16
 
 //------------------------------Globals---------------------------------
 ModelTexturePair tableAndLegs, tableSurf;
@@ -181,16 +181,17 @@ void updateWorld()
 	for (i = 0; i < kNumBalls; i++)
         for (j = i+1; j < kNumBalls; j++)
         { // YOUR CODE HERE
-            
+
             vec3 ballsCenterToCenterDiff = VectorSub(ball[i].X, ball[j].X); //X: position
             float distance = Norm(ballsCenterToCenterDiff);
             float ballsDistBetween = distance - (2*kBallSize); //assuming size is the radius
 
+						//Fix to balls stuck in eachother
             //Only normalize if not exact same position, assuming all balls spawn same position (why?)
             if(!(ballsCenterToCenterDiff.x == 0.0 && ballsCenterToCenterDiff.y == 0.0 && ballsCenterToCenterDiff.z == 0.0)){
                 ballsCenterToCenterDiff = Normalize(ballsCenterToCenterDiff);
             }
-            
+
             //Test if balls collide
             if(ballsDistBetween <= 0.0){
 
@@ -200,7 +201,7 @@ void updateWorld()
                     //j equation can be simplified by removing the I components, since they are identity matrices anyways due to spheres?
                     //thus we get the equation:
                     //j = (-(eps + 1)v_rel) / ((1/mi)+(1/mj))
-                    float elasticity = 1.0; //test 3
+                    float elasticity = 0.5; //test 3
                     float jCoeff = (-(elasticity + 1.0)*relativeScalar) / ((1.0/ball[i].mass) + (1.0/ball[j].mass));
                     //Imp = jn
                     vec3 imp = ScalarMult(ballsCenterToCenterDiff, jCoeff);
@@ -215,15 +216,27 @@ void updateWorld()
 
 	// Control rotation here to reflect
 	// friction against floor, simplified as well as more correct
-    vec3 yaxis = SetVector(0.0, 1.0, 0.0);
-    float rotspeed = 0.3;
+    vec3 yaxis = SetVector(0.0, -kBallSize, 0.0);
+    // float rotspeed = 0.3;
+		float my = 0.1;
+		float gravity = -9.82;
 	for (i = 0; i < kNumBalls; i++)
 	{ // YOUR CODE HERE
         //1. Simple rotation
-        vec3 ballRollAxis = CrossProduct(yaxis, ball[i].v);
-        float ballDir= sqrt(pow(ball[i].v.x, 2) + pow(ball[i].v.y, 2) + pow(ball[i].v.z, 2));
-        ball[i].R = MultMat4(ArbRotate(ballRollAxis, ballDir * rotspeed), ball[i].R);
-		
+        // vec3 ballRollAxis = CrossProduct(yaxis, ball[i].v);
+        // float ballDir= sqrt(pow(ball[i].v.x, 2) + pow(ball[i].v.y, 2) + pow(ball[i].v.z, 2));
+        // ball[i].R = MultMat4(ArbRotate(ballRollAxis, ballDir * rotspeed), ball[i].R);
+				if(Norm(ball[i].v) != 0.0){
+					vec3 rotVel = CrossProduct(ball[i].omega, yaxis );
+					vec3 groundVel = VectorAdd(ball[i].v, rotVel);
+					float Ff = ball[i].mass * gravity * my;
+					vec3 friction = ScalarMult(groundVel, Ff);
+					ball[i].F = VectorAdd(ball[i].F, friction);
+					ball[i].T = VectorAdd(ball[i].T, CrossProduct(yaxis, friction));
+				}
+
+
+
 	}
 
 // Update state, follows the book closely
@@ -231,9 +244,10 @@ void updateWorld()
 	{
 		vec3 dX, dP, dL, dO;
 		mat4 Rd;
-
+		float Jinv = 1.0 / (0.3 * ball[i].mass * kBallSize*kBallSize);
 		// Note: omega is not set. How do you calculate it?
 		// YOUR CODE HERE
+		ball[i].omega = ScalarMult(ball[i].L, Jinv);
 
 //		v := P * 1/mass
 		ball[i].v = ScalarMult(ball[i].P, 1.0/(ball[i].mass));
@@ -380,8 +394,8 @@ void display(void)
     glUniformMatrix4fv(glGetUniformLocation(shader, "viewMatrix"), 1, GL_TRUE, viewMatrix.m);
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "modelToWorldMatrix"), 1, GL_TRUE, modelToWorldMatrix.m);
-    
-    
+
+
 
     printError("uploading to shader");
 
@@ -413,9 +427,9 @@ void mouseDragged(int x, int y)
 {
 	vec3 p;
 	mat4 m;
-	
+
 	// This is a simple and IMHO really nice trackball system:
-	
+
 	// Use the movement direction to create an orthogonal rotation axis
 
 	p.y = x - prevx;
@@ -425,12 +439,12 @@ void mouseDragged(int x, int y)
 	// Create a rotation around this axis and premultiply it on the model-to-world matrix
 	// Limited to fixed camera! Will be wrong if the camera is moved!
 
-	m = ArbRotate(p, sqrt(p.x*p.x + p.y*p.y) / 50.0); // Rotation in view coordinates	
+	m = ArbRotate(p, sqrt(p.x*p.x + p.y*p.y) / 50.0); // Rotation in view coordinates
 	modelToWorldMatrix = Mult(m, modelToWorldMatrix);
-	
+
 	prevx = x;
 	prevy = y;
-	
+
 	glutPostRedisplay();
 }
 
@@ -463,7 +477,7 @@ int main(int argc, char **argv)
 	glutCreateWindow ("Biljardbordet");
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
-	
+
 	glutMouseFunc(mouseUpDown);
 	glutMotionFunc(mouseDragged);
 
