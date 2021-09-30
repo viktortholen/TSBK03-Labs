@@ -18,11 +18,13 @@
 #include "GL_utilities.h"
 #include <time.h>
 #include <stdlib.h>
+#include <math.h>
 // L�gg till egna globaler h�r efter behov.
-float kMaxDistance = 1000;
+float kMaxDistance = 500;
+float kFallOffDistance = 30000;
 float kAlignmentWeight = 0.003;
-float kCohesionWeight = 0.0001;
-float kAvoidanceWeight = 0.009;
+float kCohesionWeight = 0.00001;
+float kAvoidanceWeight = 0.5;
 float kFoodWeight = 0.0001;
 TextureData* foodFace;
 
@@ -31,7 +33,7 @@ FPoint CalcAvoidance(SpritePtr i, SpritePtr j, float distance){
 	FPoint avoidance;
 	avoidance.h = i->position.h - j->position.h;
 	avoidance.v = i->position.v - j->position.v;
-	float falloff = (1-(distance / sqrt(kMaxDistance)))/distance;
+	float falloff = (1-(distance / sqrt(kFallOffDistance)))/distance;
 	avoidance.h *= falloff;
 	avoidance.v *= falloff;
 	return avoidance;
@@ -61,14 +63,14 @@ while(i != NULL){
 			between.h = j->position.h - i->position.h;
 
 			float distance = sqrt(pow(between.v, 2) + pow(between.h, 2));
-			
+
 			if(distance < kMaxDistance){
 				i->speedDiff.h += j->speed.h - i->speed.h;
 				i->speedDiff.v += j->speed.v - i->speed.v;
 
 				i->averagePosition.h += j->position.h - i->position.h;
 				i->averagePosition.v += j->position.v - i->position.v;
-			
+
 				FPoint avoidance = CalcAvoidance(i, j, distance);
 				i->avoidanceVector.h = avoidance.h;
 				i->avoidanceVector.v = avoidance.v;
@@ -90,7 +92,7 @@ while(i != NULL){
 		//TODO: avoidance
 	}
 
-	
+
 	i = i->next;
 }
 //Second loop
@@ -112,14 +114,14 @@ while(i != NULL){
 		i->speed.h += i->speedDiff.h * kAlignmentWeight + i->averagePosition.h * kCohesionWeight + i->avoidanceVector.h * kAvoidanceWeight;
 		i->speed.v += i->speedDiff.v * kAlignmentWeight + i->averagePosition.v * kCohesionWeight + i->avoidanceVector.v * kAvoidanceWeight;
 	}
-	
+
 
 	//black sheeps
 	if(i->anomaly){
-		i->speed.h += (float)rand()/(float)(RAND_MAX)/10;
-		i->speed.v += (float)rand()/(float)(RAND_MAX)/10;
+		i->speed.h += ((float)rand()/(float)(RAND_MAX/2)- 1) /5;
+		i->speed.v += ((float)rand()/(float)(RAND_MAX/2)- 1) /5;
 	}
-	
+
 
 	i->position.h += i->speed.h;
 	i->position.v += i->speed.v;
@@ -132,17 +134,17 @@ while(i != NULL){
 void Display()
 {
 	SpritePtr sp;
-	
+
 	glClearColor(0, 0, 0.2, 1);
 	glClear(GL_COLOR_BUFFER_BIT+GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	DrawBackground();
-	
+
 	SpriteBehavior(); // Din kod!
-	
+
 // Loop though all sprites. (Several loops in real engine.)
 	sp = gSpriteRoot;
 	do
@@ -151,7 +153,7 @@ void Display()
 		DrawSprite(sp);
 		sp = sp->next;
 	} while (sp != NULL);
-	
+
 	//food
 	sp = gFoodSpriteRoot;
 	if(sp != NULL){
@@ -197,17 +199,17 @@ void Key(unsigned char key,
 
 void Init()
 {
-	TextureData *sheepFace, *blackFace, *dogFace;
-	
+	TextureData *sheepFace, *blackFace;
+
 	LoadTGATextureSimple("bilder/leaves.tga", &backgroundTexID); // Bakgrund
-	
+
 	sheepFace = GetFace("bilder/sheep.tga"); // Ett f�r
 	blackFace = GetFace("bilder/blackie.tga"); // Ett svart f�r
-	dogFace = GetFace("bilder/dog.tga"); // En hund
+	// dogFace = GetFace("bilder/dog.tga"); // En hund
 	foodFace = GetFace("bilder/mat.tga"); // Mat
-	
+
 	srandom(time(NULL));
-	
+
 	for (size_t i = 0; i < 20; i++)
 	{
 		// printf("%f \n", (float)rand()/(float)(RAND_MAX/6));
@@ -218,7 +220,7 @@ void Init()
 		NewSprite(blackFace, random() % 800 + 1, random() % 600 + 1, random() % 1 - 1, random() % 1 - 1, true);
 	}
 
-	
+
 }
 int prevx = 0, prevy = 0;
 
@@ -239,7 +241,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(800, 600);
 	glutInitContextVersion(3, 2);
 	glutCreateWindow("SpriteLight demo / Flocking");
-	
+
 	glutDisplayFunc(Display);
 	glutTimerFunc(20, Timer, 0); // Should match the screen synch
 	glutReshapeFunc(Reshape);
@@ -247,7 +249,7 @@ int main(int argc, char **argv)
 	glutMouseFunc(mouseUpDown);
 	InitSpriteLight();
 	Init();
-	
+
 	glutMainLoop();
 	return 0;
 }
